@@ -4,7 +4,7 @@ dist: xenial
 
 language: node_js
 node_js:
-- '10'
+#- '10'
 - '12'
 
 branches:
@@ -14,13 +14,8 @@ branches:
 git:
   quiet: true
 
-cache: npm
-
-before_install:
-- npm update
-- cd web
-
 install:
 - npm install
+
 script:
-- npm run test
+- npm run-script react-scripts build
