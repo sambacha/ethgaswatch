@@ -1,15 +1,9 @@
-require('encoding');
-require('mongodb-client-encryption');
-const MongoClient = require('mongodb').MongoClient;
 import fetch from 'node-fetch';
-import { RecommendedGasPrices, GasPriceData, TrendChartData } from "../types";
+import { RecommendedGasPrices } from "../types";
 import { AppConfig } from "../config/app";
 import { WeiToGwei } from '../utils/parse';
 import { AVERAGE_NAME } from '../utils/constants';
-import moment from 'moment';
-import { GetAverage, GetMedian } from '../utils/stats';
-
-const db_collection = "gasdata"
+require('encoding');
 
 export async function GetAllPrices(includeAverage?: boolean): Promise<RecommendedGasPrices[]> { 
     
@@ -51,10 +45,9 @@ export async function fromEtherscan(): Promise<RecommendedGasPrices | null> {
         return {
             name: "Etherscan",
             source: "https://etherscan.io/gastracker",
-            // NO instant
             fast: Math.round(Number(body.result.FastGasPrice)),
-            standard: Math.round(Number(body.result.ProposeGasPrice)),
-            slow: Math.round(Number(body.result.SafeGasPrice)),
+            average: Math.round(Number(body.result.ProposeGasPrice)),
+            low: Math.round(Number(body.result.SafeGasPrice)),
             lastBlock: Number(body.result.LastBlock)
         } as RecommendedGasPrices;
 
@@ -73,10 +66,9 @@ export async function fromEtherchain(): Promise<RecommendedGasPrices | null> {
         return {
             name: "Etherchain",
             source: "https://etherchain.org/tools/gasPriceOracle",
-            instant: Math.round(Number(body.fastest)),
-            fast: Math.round(Number(body.fast)),
-            standard: Math.round(Number(body.standard)),
-            slow: Math.round(Number(body.safeLow)),
+            fast: Number(body.fast),
+            average: Number(body.standard),
+            low: Number(body.safeLow),
             lastUpdate: Date.now()
         } as RecommendedGasPrices;
 
@@ -95,10 +87,9 @@ export async function fromGasStation(): Promise<RecommendedGasPrices | null> {
         return {
             name: "Gas station",
             source: "https://ethgasstation.info/",
-            instant: Math.round(body.fastest / 10),
-            fast: Math.round(body.fast / 10),
-            standard: Math.round(body.average / 10),
-            slow: Math.round(body.safeLow / 10),
+            fast: Math.round(body.fastest / 10),
+            average: Math.round(body.average / 10),
+            low: Math.round(body.safeLow / 10),
             lastBlock: Number(body.blockNum)
         } as RecommendedGasPrices;
 
@@ -111,16 +102,15 @@ export async function fromGasStation(): Promise<RecommendedGasPrices | null> {
 export async function fromGasNow(): Promise<RecommendedGasPrices | null> { 
 
     try { 
-        const response = await fetch(`https://www.gasnow.org/api/v2/gas/price`);
+        const response = await fetch(`https://www.gasnow.org/api/v1/gas/price`);
         const body = await response.json();
 
         return {
             name: "GAS Now",
             source: "https://www.gasnow.org/",
-            instant: Math.round(WeiToGwei(body.data.list.find((i: any) => i.index === 50).gasPrice)), // instant
-            fast: Math.round(WeiToGwei(body.data.list.find((i: any) => i.index === 200).gasPrice)), // 1 min
-            standard: Math.round(WeiToGwei(body.data.list.find((i: any) => i.index === 500).gasPrice)), // 3 min 
-            slow: Math.round(WeiToGwei(body.data.list.find((i: any) => i.index === 1000).gasPrice)), // > 10
+            fast: Math.round(WeiToGwei(body.data.top50)),
+            average: Math.round(WeiToGwei(body.data.top200)),
+            low: Math.round(WeiToGwei(body.data.top400)),
             lastUpdate: Number(body.data.timestamp)
         } as RecommendedGasPrices;
 
@@ -139,10 +129,9 @@ export async function fromMyCrypto(): Promise<RecommendedGasPrices | null> {
         return {
             name: "MyCrypto",
             source: "https://gas.mycryptoapi.com/",
-            instant: Math.round(body.fastest),
-            fast: Math.round(body.fast),
-            standard: Math.round(body.standard),
-            slow: Math.round(body.safeLow),
+            fast: Math.round(body.fastest),
+            average: Math.round(body.standard),
+            low: Math.round(body.safeLow),
             lastBlock: Number(body.blockNum)
         } as RecommendedGasPrices;
 
@@ -162,10 +151,9 @@ export async function fromPoaNetwork(): Promise<RecommendedGasPrices | null> {
         return {
             name: "POA Network",
             source: "https://gasprice.poa.network/",
-            instant: Math.round(body.instant),
             fast: Math.round(body.fast),
-            standard: Math.round(body.standard),
-            slow: Math.round(body.slow),
+            average: Math.round(body.standard),
+            low: Math.round(body.slow),
             lastBlock: Number(body.block_number)
         } as RecommendedGasPrices;
 
@@ -184,10 +172,9 @@ export async function fromUpvest(): Promise<RecommendedGasPrices | null> {
         return {
             name: "Upvest",
             source: "https://doc.upvest.co/reference#ethereum-fees",
-            instant: Math.round(body.estimates.fastest),
-            fast: Math.round(body.estimates.fast),
-            standard: Math.round(body.estimates.medium),
-            slow: Math.round(body.estimates.slow),
+            fast: Math.round(body.estimates.fastest),
+            average: Math.round(body.estimates.medium),
+            low: Math.round(body.estimates.slow),
             lastUpdate: Date.now()
         } as RecommendedGasPrices;
 
@@ -197,113 +184,34 @@ export async function fromUpvest(): Promise<RecommendedGasPrices | null> {
     }
 }
 
-export async function GetLatestGasData(): Promise<GasPriceData | null> { 
-    try { 
-        const dbCollection = await getDatabaseCollection();
-        const items = await dbCollection.find().sort({ _id: -1 }).limit(1).toArray();
-
-        if (items && items.length === 1) { 
-            return items[0].data as GasPriceData;
-        }
-
-        return null;
-
-    } catch(ex) { 
-        console.log("Failed to retrieve gas data", ex);
-        return null
-    }
-}
-
-export async function SaveGasData(data: GasPriceData) { 
-
-    try { 
-        const dbCollection = await getDatabaseCollection();
-        
-        await dbCollection.insertOne({ data });
-    } catch(ex) { 
-        console.log("Failed to save gas data", ex);
-    }
-}
-
-export async function GetDailyAverageGasData(days: number): Promise<TrendChartData | null> { 
-
-    try { 
-        const dbCollection = await getDatabaseCollection();
-        const since = moment().subtract(days, "days");
-
-        const items = await dbCollection.find({ "data.lastUpdated": { $gte: since.valueOf() } }).toArray();
-
-        var reduced = items.reduce((accumulator: any, item: any) => {
-            const day = moment(item.data.lastUpdated).startOf("day").format("ll");
-            accumulator[day] = accumulator[day] || []; 
-            accumulator[day].push(item); 
-
-            return accumulator;
-        }, {});
-
-        const result = {
-            labels: Array<string>(),
-            slow: Array<number>(),
-            normal: Array<number>(),
-            fast: Array<number>(),
-            instant: Array<number>()
-        } as TrendChartData;
-
-        Object.keys(reduced).forEach(i => {
-            let slow: number[] = [];
-            let normal: number[] = [];
-            let fast: number[] = [];
-            let instant: number[] = [];
-
-            reduced[i].forEach((gasdata: any) => {
-                const gas = gasdata.data as GasPriceData;
-                if (gas.slow) slow.push(gas.slow.gwei);
-                if (gas.normal) normal.push(gas.normal.gwei);
-                if (gas.fast) fast.push(gas.fast.gwei);
-                if (gas.instant) instant.push(gas.instant.gwei);
-            });
-
-            result.labels.push(i);
-            result.slow.push(GetMedian(slow));
-            result.normal.push(GetMedian(normal));
-            result.fast.push(GetMedian(fast));
-            result.instant.push(GetMedian(instant));
-        })
-        
-        return result;
-
-    } catch(ex) { 
-        console.log("Failed to query daily avg gas data", ex);
-        return null
-    }
-
-}
-
-export function Average(prices: RecommendedGasPrices[], median: boolean): RecommendedGasPrices { 
+export function Average(prices: RecommendedGasPrices[], median: boolean) : RecommendedGasPrices { 
 
     if (median) {
-        var instant = GetMedian(prices.filter(i => i.instant > 0).map(i => i.instant));
         var fast = GetMedian(prices.filter(i => i.fast > 0).map(i => i.fast));
-        var standard = GetMedian(prices.filter(i => i.standard > 0).map(i => i.standard));
-        var slow = GetMedian(prices.filter(i => i.slow > 0).map(i => i.slow));
+        var average = GetMedian(prices.filter(i => i.average > 0).map(i => i.average));
+        var low = GetMedian(prices.filter(i => i.low > 0).map(i => i.low));
     } else { 
-        var instant = GetAverage(prices.filter(i => i.instant > 0).map(i => i.instant));
         var fast = GetAverage(prices.filter(i => i.fast > 0).map(i => i.fast));
-        var standard = GetAverage(prices.filter(i => i.standard > 0).map(i => i.standard));
-        var slow = GetAverage(prices.filter(i => i.slow > 0).map(i => i.slow));
+        var average = GetAverage(prices.filter(i => i.average > 0).map(i => i.average));
+        var low = GetAverage(prices.filter(i => i.low > 0).map(i => i.low));
     }
 
     return {
         name: AVERAGE_NAME,
-        instant: Math.round(instant),
         fast: Math.round(fast),
-        standard: Math.round(standard),
-        slow: Math.round(slow),
+        average: Math.round(average),
+        low: Math.round(low),
     } as RecommendedGasPrices;
 }
 
-async function getDatabaseCollection(): Promise<any> { 
-    const client = await MongoClient.connect(AppConfig.MONGODB_CONNECTIONSTRING, { useNewUrlParser: true });
-    const db = client.db(AppConfig.MONGODB_DB);
-    return db.collection(db_collection); 
+export function GetAverage(values: number[]): number { 
+    
+    return values.reduce((a, v) => a + v) / values.length;
+}
+
+export function GetMedian(values: number[]): number { 
+    const fastPrices = values.sort();
+    const fastMid = Math.ceil(fastPrices.length / 2);
+
+    return fastPrices.length % 2 == 0 ? (fastPrices[fastMid] + fastPrices[fastMid - 1]) / 2 : fastPrices[fastMid - 1];
 }

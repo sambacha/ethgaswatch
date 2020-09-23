@@ -1,5 +1,5 @@
 import { Context, APIGatewayEvent } from 'aws-lambda'
-import { UpdateUserAlert } from '../services/AlertService';
+import { UpdateUser } from '../services/AirtableService';
 
 export async function handler(event: APIGatewayEvent, context: Context) {
     const data = event.queryStringParameters;
@@ -8,8 +8,11 @@ export async function handler(event: APIGatewayEvent, context: Context) {
     if (!data.email || !data.id)
         return { statusCode: 400, body: "Bad Request" };
 
-    const result = await UpdateUserAlert(data.id, { disabled: true });
-    if (!result) return { statusCode: 500, body: "Error updating user" };
+    await UpdateUser(data.id, {
+        "fields": {
+            "Disabled": true
+        }
+    })
 
     return {
         statusCode: 200,

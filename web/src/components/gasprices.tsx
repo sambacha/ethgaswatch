@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { GasPriceData  } from '../types';
-import { TimestampToTimeAgo } from '../utils/parse';
+import { GasData  } from '../types';
 import { Alert, GasPriceRow, Loading } from './';
 import { GasTable } from './gastable';
 
 export const GasPrices = () => {
     const [loading, setLoading] = useState(true);
-    const [gasData, setGasData] = useState<GasPriceData>();
+    const [gasData, setGasData] = useState<GasData>();
 
     useEffect(() => {
         async function asyncEffect() {
             try {
                 const response = await fetch(`/.netlify/functions/gas`);
-                const body = await response.json() as GasPriceData;
+                const body = await response.json() as GasData;
 
                 setGasData(body);
             } catch (ex) { 
@@ -24,12 +23,6 @@ export const GasPrices = () => {
         
         asyncEffect();
     }, []);
-
-    useEffect(() => {
-        if (gasData) { 
-            document.title = `ETH Gas.watch | ${gasData.normal.gwei} gwei`
-        }
-    }, [gasData]);
     
     if (loading) { 
         return <Loading />
@@ -41,11 +34,7 @@ export const GasPrices = () => {
 
     return (
         <>
-            <GasPriceRow data={gasData} />
-            <div className="float-right">
-                <small className="text-muted">Last update: {TimestampToTimeAgo(gasData.lastUpdated)}</small>
-            </div>
-            <br/>
+            <GasPriceRow data={gasData.data} />
             <GasTable sources={gasData.sources} />
         </>
     );

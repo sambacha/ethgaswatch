@@ -1,16 +1,12 @@
 import React from 'react';
 import { RecommendedGasPrices } from '../types';
 
-interface GasTableRowProps { 
-    data: RecommendedGasPrices
-}
-
-export const GasTableRow = (props: GasTableRowProps) => {
+export const GasTableRow = (props: RecommendedGasPrices) => {
 
     let renderSource = <></>
-    if (props.data.source) { 
+    if (props.source) { 
         renderSource = (
-            <a href={props.data.source} target="_blank" rel="noopener noreferrer" className="float-right">
+            <a href={props.source} target="_blank" rel="noopener noreferrer" className="float-right">
                 <small><span role="img" aria-label="Information">ℹ️</span></small>
             </a>
         )
@@ -19,12 +15,11 @@ export const GasTableRow = (props: GasTableRowProps) => {
     return (
         <tr>
             <th scope="row" className="table-index">
-                {props.data.name} {renderSource}
+                {props.name} {renderSource}
             </th>
-            <td>{props.data.slow || "-"}</td>
-            <td>{props.data.standard || "-"}</td>
-            <td>{props.data.fast || "-"}</td>
-            <td>{props.data.instant || "-"}</td>
+            <td>{props.low}</td>
+            <td>{props.average}</td>
+            <td>{props.fast}</td>
         </tr>
     )
 }

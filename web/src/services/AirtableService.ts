@@ -1,12 +1,56 @@
+require('encoding');
 import fetch from 'node-fetch';
 import { AppConfig } from "../config/app";
 import { RegisteredEmailAddress } from '../types';
-require('encoding');
 
-export async function GetAllUsersIterative(users: Array<RegisteredEmailAddress>, offset?: string): Promise<RegisteredEmailAddress[]> { 
+export async function RegisterUser(email: string, gasprice: string): Promise<string> { 
 
-    let offsetFilter = offset ? `&offset=${offset}` : "";
-    const response = await fetch(`https://api.airtable.com/v0/${AppConfig.AIRTABLE_BASEID}/Users?fields%5B%5D=Email&fields%5B%5D=Price&fields%5B%5D=EmailSent&view=Migrate${offsetFilter}`, {
+    const response = await fetch(`https://api.airtable.com/v0/${AppConfig.AIRTABLE_BASEID}/Users`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${AppConfig.AIRTABLE_APIKEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            "fields": {
+                "Email": email,
+                "Price": Number(gasprice)
+            }
+        }),
+    })
+
+    const body = await response.json();
+    
+    return body.id;
+}
+
+export async function UpdateUser(id: string, fields: any): Promise<string> { 
+
+    const response = await fetch(`https://api.airtable.com/v0/${AppConfig.AIRTABLE_BASEID}/Users/${id}`, {
+        method: 'PATCH',
+        headers: {
+            'Authorization': `Bearer ${AppConfig.AIRTABLE_APIKEY}`,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(fields),
+    })
+
+    const body = await response.json();
+    
+    return body.id;
+}
+
+export async function GetUsers(view: "Active" | "Flagged", gasprice: number): Promise<RegisteredEmailAddress[]> { 
+
+    let priceFilter = "";
+    if (view == "Active") {
+        priceFilter = `&filterByFormula=${gasprice}+%3C+%7BPrice%7D` // <
+    }
+    if (view === "Flagged") { 
+        priceFilter = `&filterByFormula=${gasprice}+%3E+%7BPrice%7D` // >
+    }
+
+    const response = await fetch(`https://api.airtable.com/v0/${AppConfig.AIRTABLE_BASEID}/Users?view=${view}&fields%5B%5D=Email&fields%5B%5D=Price${priceFilter}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${AppConfig.AIRTABLE_APIKEY}`
@@ -14,22 +58,13 @@ export async function GetAllUsersIterative(users: Array<RegisteredEmailAddress>,
     })
 
     const body = await response.json();
-    body.records.forEach((i: any) => {
-        const user = { 
+    const users = body.records.map((i: any) => {
+        return { 
+            id: i.id,
             email: i.fields.Email,
-            price: Number(i.fields.Price),
-            confirmed: true,
-            emailSent: i.fields.EmailSent || false
-        } as RegisteredEmailAddress;
-
-        users.push(user);
-    });
-
-    if (body.offset) { 
-        console.log("GetAllUsersIterative", body.offset)
-        const offsetUsers = await GetAllUsersIterative(users, body.offset);
-        users.concat(offsetUsers);
-    }
-
+            price: i.fields.Price
+        } as RegisteredEmailAddress
+    })
+    
     return users;
 }
