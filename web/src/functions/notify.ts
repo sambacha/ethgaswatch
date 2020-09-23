@@ -1,37 +1,30 @@
 import { Context, APIGatewayEvent } from 'aws-lambda'
-import { GetUsers, UpdateUser } from '../services/AirtableService';
+import { GetUserAlerts, UpdateUserAlert } from '../services/AlertService';
 import { SendEmailNotification } from '../services/EmailService';
-import { GetAveragePrice } from '../services/GasService';
+import { GetLatestGasData } from '../services/GasService';
 import { RegisteredEmailAddress } from '../types';
 
 export async function handler(event: APIGatewayEvent, context: Context) {
     
-    const currentPrice = await GetAveragePrice();
-    console.log("Current average low", currentPrice.low);
+    const data = await GetLatestGasData();
+    const normal = data.normal.gwei;
+    console.log("Current avg normal", normal);
 
-    const activeUsers = await GetUsers("Active", currentPrice.low);
+    const activeUsers = await GetUserAlerts("Active", normal);
     const uniques = activeUsers.filter((item: RegisteredEmailAddress, index: number, array: RegisteredEmailAddress[]) => 
         array.findIndex(i => i.email === item.email) === index);
 
-    await Promise.all(uniques.map(i => {
-        console.log("Notifying user", i.email);
-        SendEmailNotification(i.email, i.id, i.price, currentPrice.low);
-        UpdateUser(i.id, {
-            "fields": {
-                "EmailSent": true
-            }
-        })
-    }));
+    uniques.map(async i => {
+        console.log("Notifying user", i.email, i._id.toString());
+        await SendEmailNotification(i.email, i._id.toString(), i.price, normal);
+        await UpdateUserAlert(i._id.toString(), { emailSent: true });
+    });
 
-    const flaggedUsers = await GetUsers("Flagged", currentPrice.low);
-    await Promise.all(flaggedUsers.map(i => {
-        console.log("Unflag user", i.email);
-        UpdateUser(i.id, {
-            "fields": {
-                "EmailSent": false
-            }
-        })
-    }));
+    const flaggedUsers = await GetUserAlerts("Flagged", normal);
+    flaggedUsers.map(async i => {
+        const result = await UpdateUserAlert(i._id.toString(), { emailSent: false });
+        console.log("Unflagged user", i.email, result);
+    });
 
-    return { statusCode: 200, body: `Ok. ${uniques.length} notifications sent. ${flaggedUsers} unflagged.` }
+    return { statusCode: 200, body: `Ok. ${uniques.length} notifications sent. ${flaggedUsers.length} unflagged.` }
 }
