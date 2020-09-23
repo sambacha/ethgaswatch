@@ -1,10 +1,10 @@
 import { Context, APIGatewayEvent } from 'aws-lambda'
-import { GetLatestGasData } from '../services/GasService';
+import { GetUserAlertsData } from '../services/AlertService';
 
 export async function handler(event: APIGatewayEvent, context: Context) {
 
-    const data = await GetLatestGasData();
-
+    const data = await GetUserAlertsData();
+    
     return {
         statusCode: 200,
         body: JSON.stringify(data)

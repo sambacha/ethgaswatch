@@ -1,0 +1,26 @@
+# travis-ci 
+os: linux
+dist: xenial
+
+language: node_js
+node_js:
+- '10'
+- '12'
+
+branches:
+  only:
+  - master
+  
+git:
+  quiet: true
+
+cache: npm
+
+before_install:
+- npm update
+- cd web
+
+install:
+- npm install
+script:
+- npm run test
