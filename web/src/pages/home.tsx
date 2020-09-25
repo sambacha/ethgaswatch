@@ -7,7 +7,7 @@ function Home() {
       <Register />
       <GasPrices />
       <EVOPrice />
-      <0xHedge />
+      <Hedge />
     </div>
   );
 }
