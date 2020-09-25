@@ -6,7 +6,7 @@ export const Header = () => {
     <>
     <nav className="navbar navbar-expand navbar-dark">
       <a className="navbar-brand" href="/">
-        <span role="img" aria-label="Fuel pump">⛽</span> <small className="text-muted">ETH Gas.watch</small>
+        <span role="img" aria-label="Fuel pump">⛽</span> <small className="text-muted">GasEVO - GasWatcher</small>
       </a> 
       <div className="ml-auto mr-1">
         <ul className="navbar-nav text-right">
@@ -14,7 +14,10 @@ export const Header = () => {
             <a className="nav-link" href="/stats">Stats</a>
           </li>
           <li className="nav-item active">
-            <a className="nav-link" href="https://docs.ethgas.watch/">Developers</a>
+            <a className="nav-link" href="https://manifold.finance/">EVO Protocol SDK</a>
+          </li>
+           <li className="nav-item active">
+            <a className="nav-link" href="https://github.com/sambacha/gasevo/">Whitepaper</a>
           </li>
         </ul>
       </div>
