@@ -1,7 +1,8 @@
 import { MongoClient, ObjectId } from 'mongodb';
-import { AlertsData, RegisteredEmailAddress } from "../types";
+import { AlertsChartData, AlertsData, RegisteredEmailAddress } from "../types";
 import { AppConfig } from "../config/app";
 import { GetAverage, GetMode } from '../utils/stats';
+import moment from 'moment';
 require('encoding');
 require('mongodb-client-encryption');
 const qs = require('querystring');
@@ -111,7 +112,6 @@ export async function GetUserAlerts(view: "Active" | "Flagged", gasprice: number
     return [];
 }
 
-
 export async function GetUserAlertsData(): Promise<AlertsData | null> { 
 
     const client = new MongoClient(AppConfig.MONGODB_CONNECTIONSTRING, { useNewUrlParser: true });
@@ -139,4 +139,81 @@ export async function GetUserAlertsData(): Promise<AlertsData | null> {
     }
 
     return null;
+}
+
+export async function GetLatestUserAlerts(count: number, uniques?: boolean): Promise<RegisteredEmailAddress[]> { 
+
+    const client = new MongoClient(AppConfig.MONGODB_CONNECTIONSTRING, { useNewUrlParser: true });
+    try { 
+        await client.connect();
+        const db = client.db(AppConfig.MONGODB_DB);
+        const collection = db.collection(db_collection);
+        let items = await collection.find().sort({ _id: -1 }).limit(count).toArray();
+        
+        if (uniques) {
+            items = items.filter((item: RegisteredEmailAddress, index: number, array: RegisteredEmailAddress[]) => 
+                array.findIndex(i => i.email === item.email) === index);
+        }
+
+        return items;
+    } 
+    catch (ex) { 
+        console.log("ERROR getting last user alerts", count, ex);
+    }
+    finally {
+        await client.close();
+    }
+
+    return [];
+}
+
+export async function GetDailyUserAlertsRegistrations(days: number): Promise<any> { 
+
+    const client = new MongoClient(AppConfig.MONGODB_CONNECTIONSTRING, { useNewUrlParser: true });
+    try { 
+        await client.connect();
+        const db = client.db(AppConfig.MONGODB_DB);
+        const collection = db.collection(db_collection);
+        const since = moment().subtract(days, "days").valueOf();
+
+        const items = await collection.aggregate([
+            { $match: { "registered": { $gte: since } } },
+            { $project: {
+                  year: { $year: "$registered" },
+                  month: { $month: "$registered" },
+                  dayOfMonth: { $dayOfMonth: "$registered" }
+            }},
+            { $group: {
+                _id: {
+                    year: '$year',
+                    month: '$month',
+                    dayOfMonth: '$dayOfMonth'
+                },
+                count: {
+                    $sum: 1
+                }
+            }}
+        ]).toArray();
+        
+        const results = {
+            labels: Array<string>(),
+            registrations: Array<number>(),
+        } as AlertsChartData;
+
+        items.forEach(i => {
+            const mt = moment(`${i._id.year} ${i._id.month} ${i._id.dayOfMonth}`, "YYYY MM DD");
+            results.labels.push(mt.format("ll"));
+            results.registrations.push(i.count);
+        });
+        
+        return results;
+    }
+    catch (ex) { 
+        console.log("ERROR GetDailyUserAlertsRegistrations", ex);
+    }
+    finally {
+        await client.close();
+    }
+
+    return [];
 }
