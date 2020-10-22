@@ -1,5 +1,5 @@
 ---
-description: Access ETH Gas.watch data
+description: Access manifold.finance data
 ---
 
 # API

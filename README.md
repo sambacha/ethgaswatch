@@ -2,9 +2,9 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/8fc9f40f-2488-470d-87b0-f41b38c76b2a/deploy-status)](https://app.netlify.com/sites/ethgaswatch/deploys) 
 
 
-<img src="https://ywei.io/fuel.png" alt="ETH Gas.watch" width="50"/> 
+<img src="https://ywei.io/fuel.png" alt="manifold.finance" width="50"/> 
 
-ETH Gas.watch is an aggregated gas price feed that checks multiple data sources for the latest gas prices. By aggregating these data sources, it provides a more reliable, median gas price. The service includes email alerts to get notified when the price drops.
+manifold.finance is an aggregated gas price feed that checks multiple data sources for the latest gas prices. By aggregating these data sources, it provides a more reliable, median gas price. The service includes email alerts to get notified when the price drops.
 
 ## Links
 - Website https://ywei.io/
@@ -41,4 +41,4 @@ Builds the app for production to the build folder.
 
 ## License
 
-ETH Gas.watch is released under the [MIT License](https://opensource.org/licenses/MIT).
+manifold.finance is released under the [MIT License](https://opensource.org/licenses/MIT).

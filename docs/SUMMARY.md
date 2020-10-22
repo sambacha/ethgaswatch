@@ -4,6 +4,6 @@
 * [Overview](README.md)
 * [API](api.md)
 
-## ETH Gas.watch
+## manifold.finance
 
 * [Visit website](https://ywei.io/)
