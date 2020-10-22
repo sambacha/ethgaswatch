@@ -8,7 +8,7 @@ export async function SendConfirmationEmail(email: string, id: string) : Promise
     const message = {
         to: email,
         from: {
-            email: 'notifier@ethgas.watch',
+            email: 'notifier@ywei.io',
             name: 'ETH Gas.watch notifier'
         },
         subject: 'Confirm ETH Gas.watch registration',
@@ -31,7 +31,7 @@ export async function SendEmailNotification(email: string, id: string, price: nu
     const message = {
         to: email,
         from: {
-            email: 'notifier@ethgas.watch',
+            email: 'notifier@ywei.io',
             name: 'ETH Gas.watch notifier'
         },
         subject: `ETH Gas.price <${price} gwei`,

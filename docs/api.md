@@ -4,7 +4,7 @@ description: Access ETH Gas.watch data
 
 # API
 
-{% api-method method="get" host="http://ethgas.watch/api" path="/gas" %}
+{% api-method method="get" host="http://ywei.io/api" path="/gas" %}
 {% api-method-summary %}
 Gas
 {% endapi-method-summary %}
@@ -105,7 +105,7 @@ This endpoint allows you to get the latest gas price data, similar to what is sh
 {% endapi-method-spec %}
 {% endapi-method %}
 
-{% api-method method="get" host="http://ethgas.watch/api" path="/gas/trend" %}
+{% api-method method="get" host="http://ywei.io/api" path="/gas/trend" %}
 {% api-method-summary %}
 Trend
 {% endapi-method-summary %}
@@ -143,7 +143,7 @@ Amount of days to return \(e.g. 7 for 1 week\)
 {% endapi-method-spec %}
 {% endapi-method %}
 
-{% api-method method="get" host="http://ethgas.watch/api" path="/alerts/stats" %}
+{% api-method method="get" host="http://ywei.io/api" path="/alerts/stats" %}
 {% api-method-summary %}
 Stats
 {% endapi-method-summary %}

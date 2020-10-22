@@ -22,7 +22,7 @@ function Main() {
                         <Route exact path="/stats"><Stats /></Route>
                         <Route exact path="/privacy"><Privacy /></Route>
                         <Route exact path='/docs' component={() => { 
-                            window.location.href = 'https://docs.ethgas.watch/'; 
+                            window.location.href = 'https://docs.ywei.io/'; 
                             return null;
                         }}/>
                         <Redirect to="/" />

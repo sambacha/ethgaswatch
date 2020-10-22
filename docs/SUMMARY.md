@@ -6,4 +6,4 @@
 
 ## ETH Gas.watch
 
-* [Visit website](https://ethgas.watch/)
+* [Visit website](https://ywei.io/)
