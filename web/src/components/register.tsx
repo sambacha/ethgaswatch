@@ -56,7 +56,7 @@ export const Register = () => {
         <>
         <div className="p-3 mx-auto text-center">
             <p className="lead">
-                ETH Gas.watch is an aggregated gas price feed that checks multiple data sources for the latest gas prices. By aggregating these data sources, it provides a more reliable average gas price.
+                manifold.finance is an aggregated gas price feed that checks multiple data sources for the latest gas prices. By aggregating these data sources, it provides a more reliable average gas price.
             </p>
             <p>Sign-up to receive a notification when the price drops.</p>
             

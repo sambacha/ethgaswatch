@@ -9,11 +9,11 @@ export async function SendConfirmationEmail(email: string, id: string) : Promise
         to: email,
         from: {
             email: 'notifier@ywei.io',
-            name: 'ETH Gas.watch notifier'
+            name: 'manifold.finance notifier'
         },
-        subject: 'Confirm ETH Gas.watch registration',
+        subject: 'Confirm manifold.finance registration',
         text: `
-To confirm your registration for ETH Gas.watch notifications, please click on the link below. 
+To confirm your registration for manifold.finance notifications, please click on the link below. 
 
 ${activationLink}`
     };
@@ -32,7 +32,7 @@ export async function SendEmailNotification(email: string, id: string, price: nu
         to: email,
         from: {
             email: 'notifier@ywei.io',
-            name: 'ETH Gas.watch notifier'
+            name: 'manifold.finance notifier'
         },
         subject: `ETH Gas.price <${price} gwei`,
         text: `

@@ -14,7 +14,7 @@ function Main() {
 
             <div className="container">
                 {/* <div className="alert alert-warning m-3" role="alert">
-                    Enjoy ETH Gas.watch? Support us on <a href="https://gitcoin.co/grants/1175/eth-gaswatch" className="alert-link">Gitcoin Grants</a> round 7. Even a small donation can go a long way 💰
+                    EVO Protocol - Manifold Finance
                 </div> */}
                 <BrowserRouter>
                     <Switch>
@@ -22,7 +22,7 @@ function Main() {
                         <Route exact path="/stats"><Stats /></Route>
                         <Route exact path="/privacy"><Privacy /></Route>
                         <Route exact path='/docs' component={() => { 
-                            window.location.href = 'https://docs.ywei.io/'; 
+                            window.location.href = 'https://docs.manifold.finance/'; 
                             return null;
                         }}/>
                         <Redirect to="/" />
