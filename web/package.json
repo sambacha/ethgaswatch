@@ -5,11 +5,13 @@
   "version": "0.1.0",
   "scripts": {
     "start": "concurrently 'react-scripts start' 'netlify-lambda serve src/functions'",
+    "functions": "netlify-lambda serve src/functions",
     "build": "react-scripts build && netlify-lambda build src/functions",
     "test": "react-scripts test --coverage --verbose --detectOpenHandles --forceExit"
   },
   "dependencies": {
     "@sendgrid/mail": "^7.2.5",
+    "base-64": "^1.0.0",
     "bootstrap": "^4.5.2",
     "chart.js": "^2.9.3",
     "dotenv": "^8.2.0",

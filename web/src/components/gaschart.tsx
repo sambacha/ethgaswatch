@@ -1,19 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { Alert, Loading } from '.';
-import { TrendChartData } from '../types';
+import { AlertsChartData, TrendChartData } from '../types';
 import { Line } from 'react-chartjs-2';
 
-export const GasChart = () => {
+interface GasChartProps { 
+    type: "daily" | "hourly"
+}
+
+export const GasChart = (props: GasChartProps) => {
+    const defaultTimePeriod = props.type === "daily" ? 7 : 24
     const [loading, setLoading] = useState(true);
-    const [timePeriod, setTimePeriod] = useState(7);
+    const [timePeriod, setTimePeriod] = useState(defaultTimePeriod);
     const [chartData, setChartData] = useState<any>();
 
     useEffect(() => {
         async function asyncEffect() {
             try {
-                const response = await fetch(`/.netlify/functions/trend?days=${timePeriod}`);
-                const body = await response.json() as TrendChartData;
-                
+                let body: TrendChartData | null = null;
+                let registrations: AlertsChartData | null = null;
+
+                if (props.type === "daily") { 
+                    const response = await fetch(`/.netlify/functions/trend?days=${timePeriod}`);
+                    body = await response.json() as TrendChartData;
+
+                    const regResponse = await fetch(`/.netlify/functions/registrations?days=${timePeriod}`);
+                    registrations = await regResponse.json() as AlertsChartData;
+                }
+                if (props.type === "hourly") { 
+                    const response = await fetch(`/.netlify/functions/trend?hours=${timePeriod}`);
+                    body = await response.json() as TrendChartData;
+                }
+                if (body === null) { 
+                    console.log("Error retrieving gas chart data");
+                    return;
+                }
+
                 const chartData = {
                     labels: body.labels,
                     datasets: [{
@@ -39,7 +60,7 @@ export const GasChart = () => {
                         borderColor: "#654100",
                         borderWidth: "1",
                         data: body.instant,
-                    }],
+                    },],
                     options: {
                         legend: {
                             display: true,
@@ -47,6 +68,16 @@ export const GasChart = () => {
                         }
                     }
                 };
+
+                if (registrations) { 
+                    chartData.datasets.push(
+                        {
+                            label: "Registrations",
+                            borderColor: "#dc3545",
+                            borderWidth: "1",
+                            data: registrations.registrations,
+                        })
+                }
 
                 setChartData(chartData);
             } catch (ex) { 
@@ -57,7 +88,7 @@ export const GasChart = () => {
         }
         
         asyncEffect();
-    }, [timePeriod]);
+    }, [timePeriod, props.type]);
     
     if (loading) { 
         return <Loading />
@@ -67,15 +98,26 @@ export const GasChart = () => {
         return <Alert type="danger" message="Couldn't retrieve gas chart data." />
     } 
 
+    const dailyOptions = (<>
+        <option value={7}>Last week</option>
+        <option value={14}>Last 2 weeks</option>
+        <option value={30}>Last month</option>
+    </>);
+
+    const hourlyOptions = (<>
+        <option value={24}>Last 24 hours</option>
+        <option value={72}>Last 3 days</option>
+        <option value={168}>Last week</option>
+    </>);
+
     return (
-        <div className="mt-3">
-            <h2>Daily average gas prices</h2>
+        <div className="mt-4 mb-4">
+            <h2 className="text-capitalize">{props.type} average gas prices</h2>
 
             <div className="input-group input-group-sm col-6 col-sm-4 mb-3 float-right">
                 <select className="custom-select" id="inputPeriodSelector" value={timePeriod} onChange={e => setTimePeriod(Number(e.target.value))}>
-                    <option value={7}>Last week</option>
-                    <option value={14}>Last 2 weeks</option>
-                    <option value={30}>Last month</option>
+                    {props.type === "daily" ? dailyOptions : <></>}
+                    {props.type === "hourly" ? hourlyOptions : <></>}
                 </select>
             </div>
 

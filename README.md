@@ -12,7 +12,7 @@ ETH Gas.watch is an aggregated gas price feed that checks multiple data sources 
 - Donations https://gitcoin.co/grants/1175/eth-gaswatch
 
 ## Documentation 
-tbd
+- Docs https://docs.ethgas.watch/
 
 ## Roadmap 
 - A public API + documentation
@@ -42,3 +42,7 @@ Builds the app for production to the build folder.
 ## License
 
 ETH Gas.watch is released under the [MIT License](https://opensource.org/licenses/MIT).
+
+---
+
+![Deploys by Netlify](https://www.netlify.com/img/global/badges/netlify-color-accent.svg)

@@ -4,6 +4,16 @@
   publish = "build"
 
 [[redirects]]
+  from = '/api/gas/trend'
+  to = '/.netlify/functions/trend'
+  status = 200
+
+[[redirects]]
+  from = '/api/alerts/stats'
+  to = '/.netlify/functions/alerts'
+  status = 200
+
+[[redirects]]
   from = '/api/*'
   to = '/.netlify/functions/:splat'
   status = 200
